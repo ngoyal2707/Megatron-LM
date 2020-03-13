@@ -58,7 +58,7 @@ def _initialize_affine_weight(weight, output_size, input_size,
     master_weight = torch.empty(output_size, input_size,
                                 dtype=weight.dtype,
                                 requires_grad=False)
-    init_method(master_weight)
+    init_method(master_weight, gain=1 / math.sqrt(2))
 
     # Split and copy
     per_partition_per_stride_size = divide(per_partition_size, stride)
@@ -84,14 +84,14 @@ class VocabParallelEmbedding(torch.nn.Module):
         embedding_dim: size of hidden state.
         init_method: method to initialize weights.
     """
-    def __init__(self, num_embeddings, embedding_dim,
-                 init_method=init.xavier_normal_):
+    def __init__(self, num_embeddings, embedding_dim, padding_idx,
+                 init_method=init.xavier_uniform_):
         super(VocabParallelEmbedding, self).__init__()
         # Keep the input dimensions.
         self.num_embeddings = num_embeddings
         self.embedding_dim = embedding_dim
         # Set the detauls for compatibility.
-        self.padding_idx = None
+        self.padding_idx = padding_idx
         self.max_norm = None
         self.norm_type = 2.
         self.scale_grad_by_freq = False
@@ -144,7 +144,7 @@ class ParallelEmbedding(torch.nn.Module):
         init_method: method to initialize weights.
     """
     def __init__(self, num_embeddings, embedding_dim,
-                 init_method=init.xavier_normal_,
+                 init_method=init.xavier_uniform_,
                  keep_master_weight_for_test=False):
         super(ParallelEmbedding, self).__init__()
         # Keep the input dimensions.
@@ -203,7 +203,7 @@ class ColumnParallelLinear(torch.nn.Module):
                                      used for initialization.
     """
     def __init__(self, input_size, output_size, bias=True, gather_output=True,
-                 init_method=init.xavier_normal_, stride=1,
+                 init_method=init.xavier_uniform_, stride=1,
                  keep_master_weight_for_test=False):
         super(ColumnParallelLinear, self).__init__()
 
@@ -277,7 +277,7 @@ class RowParallelLinear(torch.nn.Module):
     """
     def __init__(self, input_size, output_size, bias=True,
                  input_is_parallel=False,
-                 init_method=init.xavier_normal_, stride=1,
+                 init_method=init.xavier_uniform_, stride=1,
                  keep_master_weight_for_test=False):
         super(RowParallelLinear, self).__init__()
 
@@ -324,4 +324,3 @@ class RowParallelLinear(torch.nn.Module):
         else:
             output = output_
         return output
-
