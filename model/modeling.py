@@ -34,9 +34,9 @@ from torch.nn import CrossEntropyLoss
 
 #from torch.utils.checkpoint import checkpoint
 
-from data_utils.file_utils import cached_path
+from ..data_utils.file_utils import cached_path
 
-import mpu
+from .. import mpu
 
 
 def normal_init_method(mean, std):
