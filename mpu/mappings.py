@@ -93,6 +93,7 @@ class _ReduceFromModelParallelRegion(torch.autograd.Function):
 
     @staticmethod
     def forward(ctx, input_):
+        ctx.mark_dirty(input_)
         return _reduce(input_)
 
     @staticmethod

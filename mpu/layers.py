@@ -46,6 +46,9 @@ def _initialize_affine_weight(weight, output_size, input_size,
 
     Build the master weight on all processes and scatter
     the relevant chunk."""
+
+    weight.model_parallel = True
+
     # If we only use 1 process for model parallelism, bypass scatter.
     world_size = get_model_parallel_world_size()
     if world_size == 1:
@@ -58,7 +61,11 @@ def _initialize_affine_weight(weight, output_size, input_size,
     master_weight = torch.empty(output_size, input_size,
                                 dtype=weight.dtype,
                                 requires_grad=False)
-    init_method(master_weight, gain=1 / math.sqrt(2))
+    try:
+        # xavier only
+        init_method(master_weight, gain=1 / math.sqrt(2))
+    except:
+        init_method(master_weight)
 
     # Split and copy
     per_partition_per_stride_size = divide(per_partition_size, stride)
